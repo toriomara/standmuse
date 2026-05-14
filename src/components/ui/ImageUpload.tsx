@@ -117,7 +117,10 @@ export function ImageUpload({ value, onChange, maxFiles = 10, label }: Props) {
     setUploadError("")
     const result = await startUpload(files.slice(0, maxFiles - value.length))
     if (result) {
-      const urls = result.map((r) => r.ufsUrl ?? r.url)
+      const urls = result.map((r) => {
+        const f = r as unknown as { ufsUrl?: string; url: string }
+        return f.ufsUrl ?? f.url
+      })
       onChange([...value, ...urls].slice(0, maxFiles))
     }
   }
