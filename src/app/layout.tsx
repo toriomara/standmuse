@@ -42,12 +42,6 @@ export const metadata: Metadata = {
       "Премиальные акустические и HI-FI стойки ручной работы. Массив дерева, металл, виброразвязка. Изготовление 14 дней.",
   },
   robots: { index: true, follow: true },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-    ],
-  },
 }
 
 export default function RootLayout({
