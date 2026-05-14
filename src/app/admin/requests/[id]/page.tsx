@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/Badge"
 import { Field } from "@/components/ui/Field"
 import { StatusUpdater } from "./StatusUpdater"
+import { DeleteButton } from "./DeleteButton"
 import { REQUEST_STATUS_MAP } from "@/constants/statusMaps"
 import {
   PRODUCT_TYPE_LABELS,
@@ -67,9 +68,12 @@ export default async function AdminRequestDetailPage({
             })}
           </p>
         </div>
-        <Badge variant={s.variant} className="self-start text-sm px-3 py-1">
-          {s.label}
-        </Badge>
+        <div className="flex flex-col items-end gap-2 self-start">
+          <Badge variant={s.variant} className="text-sm px-3 py-1">
+            {s.label}
+          </Badge>
+          <DeleteButton requestId={req.id} />
+        </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">

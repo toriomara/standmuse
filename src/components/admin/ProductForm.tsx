@@ -144,7 +144,7 @@ export function AdminProductForm({ product, categories }: Props) {
       />
       <Textarea
         label="Материалы (каждая строка — отдельный)"
-        placeholder={"Массив берёзы 30 мм\nСталь 120×80×4 мм"}
+        placeholder={"Массив берёзы 30 мм\nМеталл 120×80×4 мм"}
         rows={3}
         {...register("materials")}
       />

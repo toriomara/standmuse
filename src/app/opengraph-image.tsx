@@ -57,7 +57,7 @@ export default function OgImage() {
         >
           <span>Массив дерева</span>
           <span style={{ color: "#d4a853" }}>·</span>
-          <span>Сталь</span>
+          <span>Металл</span>
           <span style={{ color: "#d4a853" }}>·</span>
           <span>14 дней</span>
           <span style={{ color: "#d4a853" }}>·</span>

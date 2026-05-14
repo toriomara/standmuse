@@ -12,7 +12,7 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Logo size="md" />
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              StandMuse — место, где звук находит свою опору
+              StandMuse — место, где звук находит опору
             </p>
             <div className="mt-5 flex flex-col gap-2.5">
               <a

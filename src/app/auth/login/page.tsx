@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Logo } from "@/components/layout/Logo"
@@ -33,7 +33,9 @@ export default function LoginPage() {
       setError("Неверный email или пароль")
       return
     }
-    router.push("/account")
+    const session = await getSession()
+    const role = (session?.user as { role?: string })?.role
+    router.push(role === "ADMIN" ? "/admin" : "/account")
     router.refresh()
   }
 

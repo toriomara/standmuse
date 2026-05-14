@@ -159,6 +159,7 @@ export function PricingTiersSection() {
                   </div>
                   {/* Price anchor */}
                   <div className="pt-1">
+                    <span className="text-sm text-muted-foreground mr-1">от</span>
                     <span className="text-4xl font-bold tabular-nums">
                       {formatPrice(tier.price)}
                     </span>

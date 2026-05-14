@@ -7,7 +7,7 @@ import { Input, Textarea } from "@/components/ui/Input"
 export default function AdminSeoPage() {
   const [data, setData] = useState({
     defaultTitle: "StandMuse — Акустические стойки на заказ",
-    defaultDesc: "Премиальные акустические и HI-FI стойки ручной работы. Массив дерева, сталь, виброразвязка.",
+    defaultDesc: "Премиальные акустические и HI-FI стойки ручной работы. Массив дерева, металл, виброразвязка.",
     ogImage: "",
     googleVerification: "",
     yandexVerification: "",

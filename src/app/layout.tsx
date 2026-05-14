@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { ReduxProvider } from "@/components/providers/ReduxProvider"
+import { YandexMetrika } from "@/components/analytics/YandexMetrika"
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://standmuse.ru"),
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | StandMuse",
   },
   description:
-    "Премиальные акустические стойки и HI-FI стойки ручной работы на заказ. Массив дерева, сталь, виброразвязка. Изготовление 14 дней. Доставка СДЭК по всей России.",
+    "Премиальные акустические стойки и HI-FI стойки ручной работы на заказ. Массив дерева, металл, виброразвязка. Изготовление 14 дней. Доставка СДЭК по всей России.",
   keywords: [
     "акустические стойки",
     "акустические стойки на заказ",
@@ -37,9 +39,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "StandMuse — Акустические стойки на заказ",
     description:
-      "Премиальные акустические и HI-FI стойки ручной работы. Массив дерева, сталь, виброразвязка. Изготовление 14 дней.",
+      "Премиальные акустические и HI-FI стойки ручной работы. Массив дерева, металл, виброразвязка. Изготовление 14 дней.",
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
 }
 
 export default function RootLayout({
@@ -53,6 +61,8 @@ export default function RootLayout({
         <ThemeProvider>
           <ReduxProvider>{children}</ReduxProvider>
         </ThemeProvider>
+        <YandexMetrika />
+        <GoogleAnalytics />
       </body>
     </html>
   )

@@ -105,7 +105,7 @@ export function AdminProjectForm({ project }: Props) {
         <Input label="Порядок сортировки" type="number" value={fields.sortOrder} onChange={set("sortOrder")} />
       </div>
 
-      <Input label="Материалы (через запятую)" value={fields.materials} onChange={set("materials")} placeholder="Грецкий орех, Сталь 100×100×3" />
+      <Input label="Материалы (через запятую)" value={fields.materials} onChange={set("materials")} placeholder="Грецкий орех, Металл 100×100×3" />
       <Input label="Теги (через запятую)" value={fields.tags} onChange={set("tags")} placeholder="Wharfedale, орех, 750 мм" />
 
       <RichEditor label="Описание" value={content} onChange={setContent} placeholder="Подробное описание проекта..." />

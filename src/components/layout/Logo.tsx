@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 interface LogoProps {
@@ -18,6 +18,8 @@ const TEXT_SIZES = { sm: "text-lg", md: "text-xl", lg: "text-2xl" }
 
 export function Logo({ className, size = "md" }: LogoProps) {
   const [focused, setFocused] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const hoverBlocked = useRef(false)
 
   return (
     <Link
@@ -26,12 +28,18 @@ export function Logo({ className, size = "md" }: LogoProps) {
       aria-label="StandMuse — на главную"
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
+      onClick={() => {
+        setHovered(false)
+        hoverBlocked.current = true
+        setTimeout(() => { hoverBlocked.current = false }, 500)
+      }}
     >
       <motion.div
         className="flex items-center gap-2.5"
         initial="rest"
-        whileHover="hover"
-        animate={focused ? "hover" : "rest"}
+        animate={(hovered || focused) ? "hover" : "rest"}
+        onHoverStart={() => { if (!hoverBlocked.current) setHovered(true) }}
+        onHoverEnd={() => setHovered(false)}
       >
         <svg
           className={cn(SIZES[size], "w-auto text-accent shrink-0")}
