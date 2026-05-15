@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/Button"
 import { Badge } from "@/components/ui/Badge"
 import { Plus, Pencil } from "lucide-react"
+import { ArticleDeleteButton } from "./DeleteButton"
 export const metadata: Metadata = { title: "Admin — Статьи" }
 
 export default async function AdminArticlesPage() {
@@ -64,12 +65,15 @@ export default async function AdminArticlesPage() {
                       {a.isPublished ? "Опубликована" : "Черновик"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link href={`/admin/articles/${a.id}`}>
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-3">
+                      <ArticleDeleteButton articleId={a.id} afterDelete="stay" />
+                      <Link href={`/admin/articles/${a.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))

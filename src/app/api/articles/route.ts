@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { slugify } from "@/lib/utils"
+
+async function uniqueSlug(base: string): Promise<string> {
+  let slug = base
+  let i = 2
+  while (await prisma.article.findUnique({ where: { slug } })) {
+    slug = `${base}-${i++}`
+  }
+  return slug
+}
 
 export async function GET() {
   try {
@@ -21,9 +31,12 @@ export async function POST(req: Request) {
     if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
     const body = await req.json()
+    const base = slugify(body.slug || body.title || "article")
+    const slug = await uniqueSlug(base)
     const article = await prisma.article.create({
       data: {
         ...body,
+        slug,
         publishedAt: body.isPublished ? new Date() : null,
       },
     })

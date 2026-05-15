@@ -50,9 +50,16 @@ export default async function ArticlePage({ params }: Props) {
 
       <article>
         {article.image && (
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--muted)] mb-8">
-            <Image src={article.image} alt={article.title} fill className="object-cover" priority />
-          </div>
+          <figure className="mb-8">
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--muted)]">
+              <Image src={article.image} alt={article.title} fill className="object-cover" priority />
+            </div>
+            {article.imageCaption && (
+              <figcaption className="mt-2 text-xs text-muted-foreground">
+                {article.imageCaption}
+              </figcaption>
+            )}
+          </figure>
         )}
 
         <div className="flex flex-wrap gap-2 mb-4">
@@ -75,7 +82,7 @@ export default async function ArticlePage({ params }: Props) {
 
         <div className="prose prose-neutral dark:prose-invert max-w-none text-[var(--foreground)] leading-relaxed">
           <div
-            className="whitespace-pre-line text-[var(--foreground)] [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-4 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-3 [&_p]:mb-4 [&_p]:text-[var(--muted-foreground)] [&_ul]:my-4 [&_li]:ml-4 [&_li]:list-disc"
+            className="whitespace-pre-line text-[var(--foreground)] [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-4 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-3 [&_p]:mb-4 [&_ul]:my-4 [&_li]:ml-4 [&_li]:list-disc"
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </div>

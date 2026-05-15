@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button"
 import { Input, Textarea } from "@/components/ui/Input"
 import { RichEditor } from "@/components/ui/RichEditor"
 import { ImageUpload } from "@/components/ui/ImageUpload"
+import { slugify } from "@/lib/utils"
+import { ArticleDeleteButton } from "../DeleteButton"
 
 export default function AdminArticleEditPage() {
   const router = useRouter()
@@ -14,11 +16,14 @@ export default function AdminArticleEditPage() {
 
   const [data, setData] = useState({
     title: "", slug: "", excerpt: "",
-    tags: "", seoTitle: "", seoDesc: "", isPublished: false,
+    tags: "", seoTitle: "", seoDesc: "",
+    imageCaption: "", isPublished: false,
   })
   const [content, setContent] = useState("")
   const [image, setImage] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState("")
+  const [slugEdited, setSlugEdited] = useState(false)
 
   useEffect(() => {
     if (!isNew) {
@@ -29,6 +34,7 @@ export default function AdminArticleEditPage() {
             title: d.title, slug: d.slug, excerpt: d.excerpt ?? "",
             tags: d.tags?.join(", ") ?? "",
             seoTitle: d.seoTitle ?? "", seoDesc: d.seoDesc ?? "",
+            imageCaption: d.imageCaption ?? "",
             isPublished: d.isPublished,
           })
           setContent(d.content ?? "")
@@ -37,33 +43,53 @@ export default function AdminArticleEditPage() {
     }
   }, [id, isNew])
 
+  const setTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const title = e.target.value
+    setData((prev) => ({
+      ...prev,
+      title,
+      slug: isNew && !slugEdited ? slugify(title) : prev.slug,
+    }))
+  }
+
+  const setSlug = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugEdited(true)
+    setData((prev) => ({ ...prev, slug: e.target.value }))
+  }
+
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setData((prev) => ({ ...prev, [field]: e.target.value }))
+
   const save = async () => {
     setSaving(true)
+    setSaveError("")
     const body = {
       ...data,
       content,
       image: image[0] ?? null,
       tags: data.tags.split(",").map((t) => t.trim()).filter(Boolean),
     }
-    await fetch(isNew ? "/api/articles" : `/api/articles/${id}`, {
+    const res = await fetch(isNew ? "/api/articles" : `/api/articles/${id}`, {
       method: isNew ? "POST" : "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     })
-    setSaving(false)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setSaveError(json.error ?? "Ошибка сохранения")
+      setSaving(false)
+      return
+    }
     router.push("/admin/articles")
   }
-
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setData((prev) => ({ ...prev, [field]: e.target.value }))
 
   return (
     <div className="max-w-3xl flex flex-col gap-5">
       <h1 className="text-2xl font-bold">{isNew ? "Новая статья" : "Редактировать статью"}</h1>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Input label="Заголовок" value={data.title} onChange={set("title")} />
-        <Input label="Slug" value={data.slug} onChange={set("slug")} />
+        <Input label="Заголовок" value={data.title} onChange={setTitle} />
+        <Input label="Slug" value={data.slug} onChange={setSlug} />
       </div>
 
       <Textarea label="Анонс" rows={2} value={data.excerpt} onChange={set("excerpt")} />
@@ -80,6 +106,13 @@ export default function AdminArticleEditPage() {
         value={image}
         onChange={setImage}
         maxFiles={1}
+      />
+
+      <Input
+        label="Подпись под фото"
+        placeholder="Фото: Иван Иванов / StandMuse"
+        value={data.imageCaption}
+        onChange={set("imageCaption")}
       />
 
       <Input label="Теги (через запятую)" value={data.tags} onChange={set("tags")} />
@@ -101,9 +134,14 @@ export default function AdminArticleEditPage() {
         Опубликовать
       </label>
 
-      <div className="flex gap-3">
-        <Button loading={saving} onClick={save}>Сохранить</Button>
-        <Button variant="outline" onClick={() => router.back()}>Отмена</Button>
+      {saveError && <p className="text-sm text-destructive">{saveError}</p>}
+
+      <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex gap-3">
+          <Button loading={saving} onClick={save}>Сохранить</Button>
+          <Button variant="outline" onClick={() => router.back()}>Отмена</Button>
+        </div>
+        {!isNew && <ArticleDeleteButton articleId={id} afterDelete="list" />}
       </div>
     </div>
   )

@@ -30,11 +30,11 @@ export function ConfirmDialog({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-[fadeIn_150ms_ease] data-[state=closed]:animate-[fadeOut_150ms_ease]" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/30 data-[state=open]:animate-[fadeIn_150ms_ease] data-[state=closed]:animate-[fadeOut_150ms_ease]" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-card border border-border rounded-2xl shadow-xl p-6 data-[state=open]:animate-[slideInUp_200ms_ease] data-[state=closed]:animate-[slideOutDown_150ms_ease] focus:outline-none">
           <Dialog.Close
             aria-label="Закрыть"
-            className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-4 top-4 rounded text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
           >
             <X className="h-4 w-4" />
           </Dialog.Close>

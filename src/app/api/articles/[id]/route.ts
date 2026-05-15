@@ -13,6 +13,19 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   }
 }
 
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth()
+    const user = session?.user as { role?: string } | undefined
+    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const { id } = await params
+    await prisma.article.delete({ where: { id } })
+    return new NextResponse(null, { status: 204 })
+  } catch {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()

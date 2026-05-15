@@ -68,6 +68,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -76,6 +77,13 @@ body {
   font-family: var(--font-sans);
   line-height: 1.6;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* react-remove-scroll-bar injects margin-right via <style>; override with higher specificity */
+html body[data-scroll-locked] {
+  overflow: hidden !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 /* ─── Typography helpers ──────────────────────────────────── */

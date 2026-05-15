@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { ReduxProvider } from "@/components/providers/ReduxProvider"
 import { YandexMetrika } from "@/components/analytics/YandexMetrika"
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics"
+import { GoogleTagManager } from "@/components/analytics/GoogleTagManager"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://standmuse.ru"),
@@ -57,6 +58,7 @@ export default function RootLayout({
         </ThemeProvider>
         <YandexMetrika />
         <GoogleAnalytics />
+        <GoogleTagManager />
       </body>
     </html>
   )
