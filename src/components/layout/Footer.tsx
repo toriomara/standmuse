@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, Mail, Clock } from "lucide-react";
+import { Phone, Mail } from "lucide-react";
 import { Logo } from "./Logo";
 import { mainNav, categoryNav } from "@/constants/nav";
 

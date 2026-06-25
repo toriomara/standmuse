@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import Script from "next/script"
-import { usePathname } from "next/navigation"
-import { useEffect } from "react"
+import Script from "next/script";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
-const GA_ID = "G-98NYS4NF8K"
+const GA_ID = "G-98NYS4NF8K";
 
 declare global {
   interface Window {
-    gtag?: (...args: unknown[]) => void
-    dataLayer?: unknown[]
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
   }
 }
 
 export function GoogleAnalytics() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   useEffect(() => {
-    window.gtag?.("config", GA_ID, { page_path: window.location.href })
-  }, [pathname])
+    window.gtag?.("config", GA_ID, { page_path: window.location.href });
+  }, [pathname]);
 
   return (
     <>
@@ -39,5 +39,5 @@ gtag('config','${GA_ID}');
         }}
       />
     </>
-  )
+  );
 }
