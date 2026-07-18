@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic"
+﻿export const dynamic = "force-dynamic"
 import { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/Badge"
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder"
 import { SectionTitle } from "@/components/shared/SectionTitle"
+
 export const metadata: Metadata = {
   title: "Статьи — Всё об акустических стойках и HI-FI звуке",
   description:

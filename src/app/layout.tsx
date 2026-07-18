@@ -1,10 +1,10 @@
-import type { Metadata } from "next"
-import "./globals.css"
-import { ThemeProvider } from "@/components/providers/ThemeProvider"
-import { ReduxProvider } from "@/components/providers/ReduxProvider"
-import { YandexMetrika } from "@/components/analytics/YandexMetrika"
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics"
-import { GoogleTagManager } from "@/components/analytics/GoogleTagManager"
+import type { Metadata } from "next";
+import "./globals.css";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ReduxProvider } from "@/components/providers/ReduxProvider";
+import { YandexMetrika } from "@/components/analytics/YandexMetrika";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://standmuse.ru"),
@@ -35,6 +35,14 @@ export const metadata: Metadata = {
     siteName: "StandMuse",
     locale: "ru_RU",
     type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "StandMuse — Акустические стойки на заказ",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -43,12 +51,12 @@ export const metadata: Metadata = {
       "Премиальные акустические и HI-FI стойки ручной работы. Массив дерева, металл, виброразвязка. Изготовление 14 дней.",
   },
   robots: { index: true, follow: true },
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="ru" suppressHydrationWarning className="h-full">
@@ -61,5 +69,5 @@ export default function RootLayout({
         <GoogleTagManager />
       </body>
     </html>
-  )
+  );
 }
