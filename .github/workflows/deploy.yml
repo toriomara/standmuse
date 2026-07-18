@@ -1,0 +1,91 @@
+name: CI/CD - Gitflow standmuse.ru
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma Generate
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  deploy-production:
+    needs: build-and-check
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -T -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+
+            echo "🚀 Starting PRODUCTION deployment for standmuse.ru..."
+
+            cd /var/www/standmuse
+
+            echo "📥 Updating repository..."
+            git fetch origin
+            git reset --hard origin/main
+            git clean -fd
+
+            echo "📦 Installing dependencies..."
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+            npm ci --production=false
+
+            echo "🗄️ Generating Prisma client..."
+            npx prisma generate
+
+            echo "🗄️ Applying migrations..."
+            npx prisma migrate deploy
+
+            test -f .env || (echo ".env not found!" && exit 1)
+
+            echo "🏗️ Building project..."
+            # Для 2 ГБ RAM — оставляем запас
+            NODE_OPTIONS="--max-old-space-size=1536" npm run build
+
+            echo "♻️ Restarting PM2..."
+            pm2 restart standmuse --update-env 2>/dev/null || \
+            pm2 start npm --name "standmuse" -- start
+
+            pm2 save
+
+            echo "✅ Deployment completed successfully! ($(date))"
+          EOF
