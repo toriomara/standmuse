@@ -73,7 +73,7 @@ jobs:
             npx prisma generate
 
             echo "🗄️ Applying migrations..."
-            npx prisma migrate deploy
+            npx prisma db push
 
             test -f .env || (echo ".env not found!" && exit 1)
 
