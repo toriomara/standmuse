@@ -20,6 +20,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { useUploadThing } from "@/lib/uploadthing-client"
 import { Button } from "./Button"
 import { cn } from "@/lib/utils"
+import { isAllowedImageHost } from "@/lib/image-hosts"
 
 interface Props {
   value: string[]
@@ -81,8 +82,10 @@ function SortableImage({
 }
 
 export function ImageUpload({ value, onChange, maxFiles = 10, label }: Props) {
-  const [tab, setTab] = useState<"url" | "upload">("url")
+  const [tab, setTab] = useState<"url" | "upload">("upload")
   const [urlInput, setUrlInput] = useState("")
+  const [urlError, setUrlError] = useState("")
+  const [checkingUrl, setCheckingUrl] = useState(false)
   const [uploadError, setUploadError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -103,9 +106,32 @@ export function ImageUpload({ value, onChange, maxFiles = 10, label }: Props) {
     }
   }
 
-  const addUrl = () => {
+  const addUrl = async () => {
     const url = urlInput.trim()
     if (!url || value.length >= maxFiles) return
+    setUrlError("")
+
+    if (!isAllowedImageHost(url)) {
+      setUrlError(
+        "Сайт не покажет фото с этого домена. Скачайте файл и загрузите его на вкладке «Загрузить».",
+      )
+      return
+    }
+
+    setCheckingUrl(true)
+    const loads = await new Promise<boolean>((resolve) => {
+      const img = new window.Image()
+      img.onload = () => resolve(img.naturalWidth > 0)
+      img.onerror = () => resolve(false)
+      img.src = url
+    })
+    setCheckingUrl(false)
+
+    if (!loads) {
+      setUrlError("По этой ссылке нет изображения. Нужна прямая ссылка на файл картинки.")
+      return
+    }
+
     onChange([...value, url])
     setUrlInput("")
   }
@@ -177,19 +203,31 @@ export function ImageUpload({ value, onChange, maxFiles = 10, label }: Props) {
 
           <div className="p-3">
             {tab === "url" ? (
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUrl())}
-                  placeholder="https://example.com/image.jpg"
-                  className="flex-1 h-9 rounded-lg border border-border bg-input px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <Button type="button" size="sm" onClick={addUrl} disabled={!urlInput.trim()}>
-                  Добавить
-                </Button>
-              </div>
+              <>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={urlInput}
+                    onChange={(e) => {
+                      setUrlInput(e.target.value)
+                      setUrlError("")
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUrl())}
+                    placeholder="https://example.com/image.jpg"
+                    className="flex-1 h-9 rounded-lg border border-border bg-input px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addUrl}
+                    loading={checkingUrl}
+                    disabled={!urlInput.trim()}
+                  >
+                    Добавить
+                  </Button>
+                </div>
+                {urlError && <p className="text-xs text-destructive mt-1">{urlError}</p>}
+              </>
             ) : (
               <>
                 <div

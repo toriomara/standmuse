@@ -1,10 +1,10 @@
 ﻿export const dynamic = "force-dynamic"
 import { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/Badge"
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder"
+import { ArticleImage } from "@/components/ui/ArticleImage"
 import { SectionTitle } from "@/components/shared/SectionTitle"
 
 export const metadata: Metadata = {
@@ -45,10 +45,10 @@ export default async function ArticlesPage() {
             >
               <div className="relative aspect-video bg-muted overflow-hidden">
                 {article.image ? (
-                  <Image
+                  <ArticleImage
                     src={article.image}
                     alt={article.title}
-                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (

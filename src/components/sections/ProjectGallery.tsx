@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog"
 import { useState } from "react"
 import { X } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder"
+import { SafeImg } from "@/components/ui/SafeImage"
 
 export function ProjectGallery({ images, title }: { images: string[]; title: string }) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -23,8 +24,7 @@ export function ProjectGallery({ images, title }: { images: string[]; title: str
           onClick={() => images[0] && openImage(0)}
         >
           {images[0] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={images[0]} alt={title} className="w-full h-full object-cover" />
+            <SafeImg src={images[0]} alt={title} className="w-full h-full object-cover" />
           ) : (
             <ImagePlaceholder />
           )}
@@ -39,8 +39,7 @@ export function ProjectGallery({ images, title }: { images: string[]; title: str
                 className="aspect-square rounded-lg overflow-hidden bg-muted cursor-zoom-in"
                 onClick={() => openImage(i + 1)}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <SafeImg src={url} alt="" className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
