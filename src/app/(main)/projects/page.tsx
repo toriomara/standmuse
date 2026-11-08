@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { Ruler, Layers, ArrowRight } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder"
+import { SafeImg } from "@/components/ui/SafeImage"
 
 export const dynamic = "force-dynamic"
 
@@ -40,8 +41,7 @@ export default async function ProjectsPage() {
               {/* Photo */}
               <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
                 {project.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <SafeImg
                     src={project.images[0]}
                     alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

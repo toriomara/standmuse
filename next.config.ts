@@ -1,15 +1,11 @@
 import type { NextConfig } from "next";
+import { IMAGE_HOSTS } from "./src/lib/image-hosts";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["bcryptjs", "@prisma/client"],
   images: {
     unoptimized: process.env.NODE_ENV === "development",
-    remotePatterns: [
-      { protocol: "https", hostname: "utfs.io" },
-      { protocol: "https", hostname: "*.ufs.sh" },
-      { protocol: "https", hostname: "uploadthing.com" },
-      { protocol: "https", hostname: "placehold.co" },
-    ],
+    remotePatterns: IMAGE_HOSTS.map((hostname) => ({ protocol: "https" as const, hostname })),
   },
 };
 

@@ -1,8 +1,8 @@
 ﻿export const dynamic = "force-dynamic"
 import { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 import { notFound } from "next/navigation"
+import { ArticleImage } from "@/components/ui/ArticleImage"
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/Badge"
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs"
@@ -52,7 +52,7 @@ export default async function ArticlePage({ params }: Props) {
         {article.image && (
           <figure className="mb-8">
             <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--muted)]">
-              <Image src={article.image} alt={article.title} fill className="object-cover" priority />
+              <ArticleImage src={article.image} alt={article.title} sizes="(min-width: 896px) 896px, 100vw" className="object-cover" priority />
             </div>
             {article.imageCaption && (
               <figcaption className="mt-2 text-xs text-muted-foreground">

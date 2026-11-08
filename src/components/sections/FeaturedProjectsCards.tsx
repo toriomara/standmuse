@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { Ruler, Layers, ArrowRight, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder"
+import { SafeImg } from "@/components/ui/SafeImage"
 
 type ProjectSnippet = {
   id: string
@@ -65,8 +66,7 @@ export function FeaturedProjectsCards({ projects }: { projects: ProjectSnippet[]
             >
               <div className="aspect-4/3 bg-muted overflow-hidden">
                 {project.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <SafeImg
                     src={project.images[0]}
                     alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
