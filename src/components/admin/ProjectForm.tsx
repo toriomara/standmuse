@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/Button"
 import { Input, Textarea } from "@/components/ui/Input"
 import { RichEditor } from "@/components/ui/RichEditor"
 import { ImageUpload } from "@/components/ui/ImageUpload"
+import { apiRequest } from "@/lib/api-client"
+import { parseList } from "@/lib/utils"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 
 interface Project {
   id: string
@@ -52,31 +55,27 @@ export function AdminProjectForm({ project }: Props) {
   })
   const [content, setContent] = useState(project?.content ?? "")
   const [images, setImages] = useState<string[]>(project?.images ?? [])
-  const [saving, setSaving] = useState(false)
+  const { pending, error, run } = useAsyncAction()
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const set = (field: keyof typeof fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((prev) => ({ ...prev, [field]: e.target.value }))
 
   const save = async () => {
-    setSaving(true)
-    const body = {
-      ...fields,
-      content,
-      images,
-      price: fields.price ? Number(fields.price) : null,
-      sortOrder: Number(fields.sortOrder) || 0,
-      materials: fields.materials.split(",").map((s) => s.trim()).filter(Boolean),
-      tags: fields.tags.split(",").map((s) => s.trim()).filter(Boolean),
-    }
-
-    const method = project ? "PATCH" : "POST"
-    const url = project ? `/api/projects/${project.id}` : "/api/projects"
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
-    setSaving(false)
+    const ok = await run(() =>
+      apiRequest(project ? `/api/projects/${project.id}` : "/api/projects", {
+        method: project ? "PATCH" : "POST",
+        body: {
+          ...fields,
+          content,
+          images,
+          price: fields.price ? Number(fields.price) : null,
+          sortOrder: Number(fields.sortOrder) || 0,
+          materials: parseList(fields.materials),
+          tags: parseList(fields.tags),
+        },
+      }),
+    )
+    if (!ok) return
     router.push("/admin/projects")
     router.refresh()
   }
@@ -129,8 +128,10 @@ export function AdminProjectForm({ project }: Props) {
         Опубликовать
       </label>
 
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
       <div className="flex gap-3 pt-2">
-        <Button loading={saving} onClick={save}>{project ? "Сохранить" : "Создать"}</Button>
+        <Button loading={pending} onClick={save}>{project ? "Сохранить" : "Создать"}</Button>
         <Button variant="outline" onClick={() => router.back()}>Отмена</Button>
       </div>
     </div>

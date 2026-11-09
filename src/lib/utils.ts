@@ -34,3 +34,11 @@ export function formatPrice(price?: number | null): string {
 export function truncate(str: string, length: number): string {
   return str.length > length ? str.slice(0, length) + "…" : str
 }
+
+/** Разбирает строку «a, b, c» (или список по строкам) в массив без пустых элементов. */
+export function parseList(value: string, separator: string | RegExp = ","): string[] {
+  return value
+    .split(separator)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}

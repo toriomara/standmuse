@@ -2,7 +2,7 @@
 
 import { useState, useRef, KeyboardEvent } from "react"
 import { Send, Paperclip, X } from "lucide-react"
-import { useUploadThing } from "@/lib/uploadthing-client"
+import { getUploadedUrl, useUploadThing } from "@/lib/uploadthing-client"
 
 interface MessageInputProps {
   onSend: (text: string, imageUrl?: string) => Promise<void>
@@ -14,20 +14,25 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
   const [pendingImage, setPendingImage] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [uploadError, setUploadError] = useState("")
   const fileRef = useRef<HTMLInputElement>(null)
 
   const { startUpload } = useUploadThing("chatImageUploader", {
     onClientUploadComplete: (res) => {
-      if (res?.[0]?.url) setPendingImage(res[0].url)
+      if (res?.[0]) setPendingImage(getUploadedUrl(res[0]))
       setUploading(false)
     },
-    onUploadError: () => setUploading(false),
+    onUploadError: () => {
+      setUploading(false)
+      setUploadError("Не удалось загрузить изображение")
+    },
   })
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
+    setUploadError("")
     await startUpload([file])
     if (fileRef.current) fileRef.current.value = ""
   }
@@ -69,6 +74,8 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
           </button>
         </div>
       )}
+
+      {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
 
       <div className="flex items-end gap-2">
         <input

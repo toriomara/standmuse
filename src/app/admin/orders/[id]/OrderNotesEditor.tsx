@@ -3,6 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
+import { FormField, inputCls, textareaCls } from "@/components/admin/FormField"
+import { SaveStatus } from "@/components/admin/SaveStatus"
+import { apiRequest } from "@/lib/api-client"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 
 interface Props {
   orderId: string
@@ -11,62 +15,53 @@ interface Props {
 }
 
 export function OrderNotesEditor({ orderId, totalPrice, notes }: Props) {
+  const router = useRouter()
   const [price, setPrice] = useState(totalPrice?.toString() ?? "")
   const [note, setNote] = useState(notes ?? "")
-  const [loading, setLoading] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const router = useRouter()
+  const { pending, error, done, run, reset } = useAsyncAction()
 
   const handleSave = async () => {
-    setLoading(true)
-    setSaved(false)
-    try {
-      await fetch(`/api/orders/${orderId}`, {
+    const ok = await run(() =>
+      apiRequest(`/api/orders/${orderId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          totalPrice: price ? parseFloat(price) : null,
-          notes: note || null,
-        }),
-      })
-      setSaved(true)
-      router.refresh()
-    } finally {
-      setLoading(false)
-    }
+        body: { totalPrice: price ? Number(price) : null, notes: note || null },
+      }),
+    )
+    if (ok) router.refresh()
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Сумма (₽)
-        </label>
+      <FormField label="Сумма (₽)">
         <input
           type="number"
+          min={0}
           value={price}
-          onChange={(e) => { setPrice(e.target.value); setSaved(false) }}
+          onChange={(e) => {
+            setPrice(e.target.value)
+            reset()
+          }}
           placeholder="Не указана"
-          className="h-10 rounded-lg border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className={inputCls}
         />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Заметки
-        </label>
+      </FormField>
+      <FormField label="Заметки">
         <textarea
           value={note}
-          onChange={(e) => { setNote(e.target.value); setSaved(false) }}
+          onChange={(e) => {
+            setNote(e.target.value)
+            reset()
+          }}
           rows={4}
           placeholder="Комментарий к заказу..."
-          className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 resize-none"
+          className={textareaCls}
         />
-      </div>
+      </FormField>
       <div className="flex items-center gap-3">
-        <Button size="sm" onClick={handleSave} loading={loading}>
+        <Button size="sm" onClick={handleSave} loading={pending}>
           Сохранить
         </Button>
-        {saved && <span className="text-sm text-green-600 dark:text-green-400">Сохранено</span>}
+        <SaveStatus done={done} error={error} />
       </div>
     </div>
   )

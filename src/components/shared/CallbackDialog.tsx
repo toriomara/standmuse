@@ -4,6 +4,8 @@ import * as Dialog from "@radix-ui/react-dialog"
 import { X, PhoneCall, CheckCircle2 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/Button"
+import { apiRequest } from "@/lib/api-client"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 
 interface FormState {
   name: string
@@ -13,34 +15,19 @@ interface FormState {
 export function CallbackDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<FormState>({ name: "", phone: "" })
-  const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
+  const { pending, error, done, run, reset } = useAsyncAction()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    try {
-      await fetch("/api/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productType: "callback",
-          name: form.name,
-          phone: form.phone,
-          message: "Запрос обратного звонка",
-        }),
-      })
-      setDone(true)
-    } finally {
-      setLoading(false)
-    }
+    await run(() => apiRequest("/api/callback", { method: "POST", body: form }))
   }
 
   const handleOpenChange = (val: boolean) => {
     setOpen(val)
     if (!val) {
+      // сбрасываем после анимации закрытия
       setTimeout(() => {
-        setDone(false)
+        reset()
         setForm({ name: "", phone: "" })
       }, 300)
     }
@@ -105,7 +92,12 @@ export function CallbackDialog({ children }: { children: React.ReactNode }) {
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-(--accent)/50"
                   />
                 </div>
-                <Button type="submit" className="mt-1 w-full" loading={loading}>
+                {error && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
+                <Button type="submit" className="mt-1 w-full" loading={pending}>
                   Перезвоните мне
                 </Button>
               </form>

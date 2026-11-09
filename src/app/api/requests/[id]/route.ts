@@ -1,50 +1,43 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { handleRoute, notFound, type IdContext } from "@/lib/api"
+import { requireAdmin } from "@/lib/requireAdmin"
+import { requestStatusSchema } from "@/lib/validations"
 
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const session = await auth()
-    const user = session?.user as { role?: string } | undefined
-    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+export async function GET(_: Request, { params }: IdContext) {
+  return handleRoute("requests/:id GET", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
     const { id } = await params
     const request = await prisma.request.findUnique({
       where: { id },
       include: { user: { select: { name: true, email: true } } },
     })
-    if (!request) return NextResponse.json({ error: "Not found" }, { status: 404 })
+    if (!request) return notFound()
     return NextResponse.json(request)
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const session = await auth()
-    const user = session?.user as { role?: string } | undefined
-    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+export async function PATCH(req: Request, { params }: IdContext) {
+  return handleRoute("requests/:id PATCH", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
     const { id } = await params
-    const body = await req.json()
-    const updated = await prisma.request.update({ where: { id }, data: { status: body.status } })
+    const { status } = requestStatusSchema.parse(await req.json())
+    const updated = await prisma.request.update({ where: { id }, data: { status } })
     return NextResponse.json(updated)
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const session = await auth()
-    const user = session?.user as { role?: string } | undefined
-    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+export async function DELETE(_: Request, { params }: IdContext) {
+  return handleRoute("requests/:id DELETE", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
     const { id } = await params
     await prisma.request.delete({ where: { id } })
     return new NextResponse(null, { status: 204 })
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }

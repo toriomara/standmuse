@@ -6,41 +6,65 @@ import { Button } from "@/components/ui/Button"
 import { Input, Textarea } from "@/components/ui/Input"
 import { RichEditor } from "@/components/ui/RichEditor"
 import { ImageUpload } from "@/components/ui/ImageUpload"
-import { slugify } from "@/lib/utils"
-import { ArticleDeleteButton } from "../DeleteButton"
+import { DeleteButton } from "@/components/admin/DeleteButton"
+import { apiRequest, errorMessage } from "@/lib/api-client"
+import { parseList, slugify } from "@/lib/utils"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
+
+interface ArticleRecord {
+  title: string
+  slug: string
+  excerpt: string | null
+  content: string
+  image: string | null
+  imageCaption: string | null
+  tags: string[]
+  seoTitle: string | null
+  seoDesc: string | null
+  isPublished: boolean
+}
+
+const emptyFields = {
+  title: "",
+  slug: "",
+  excerpt: "",
+  tags: "",
+  seoTitle: "",
+  seoDesc: "",
+  imageCaption: "",
+  isPublished: false,
+}
 
 export default function AdminArticleEditPage() {
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
   const isNew = id === "new"
 
-  const [data, setData] = useState({
-    title: "", slug: "", excerpt: "",
-    tags: "", seoTitle: "", seoDesc: "",
-    imageCaption: "", isPublished: false,
-  })
+  const [data, setData] = useState(emptyFields)
   const [content, setContent] = useState("")
   const [image, setImage] = useState<string[]>([])
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState("")
   const [slugEdited, setSlugEdited] = useState(false)
+  const [loadError, setLoadError] = useState("")
+  const { pending, error, run } = useAsyncAction()
 
   useEffect(() => {
-    if (!isNew) {
-      fetch(`/api/articles/${id}`)
-        .then((r) => r.json())
-        .then((d) => {
-          setData({
-            title: d.title, slug: d.slug, excerpt: d.excerpt ?? "",
-            tags: d.tags?.join(", ") ?? "",
-            seoTitle: d.seoTitle ?? "", seoDesc: d.seoDesc ?? "",
-            imageCaption: d.imageCaption ?? "",
-            isPublished: d.isPublished,
-          })
-          setContent(d.content ?? "")
-          setImage(d.image ? [d.image] : [])
+    if (isNew) return
+    apiRequest<ArticleRecord>(`/api/articles/${id}`)
+      .then((a) => {
+        setData({
+          title: a.title,
+          slug: a.slug,
+          excerpt: a.excerpt ?? "",
+          tags: a.tags.join(", "),
+          seoTitle: a.seoTitle ?? "",
+          seoDesc: a.seoDesc ?? "",
+          imageCaption: a.imageCaption ?? "",
+          isPublished: a.isPublished,
         })
-    }
+        setContent(a.content ?? "")
+        setImage(a.image ? [a.image] : [])
+      })
+      .catch((e) => setLoadError(errorMessage(e, "Не удалось загрузить статью")))
   }, [id, isNew])
 
   const setTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,31 +81,22 @@ export default function AdminArticleEditPage() {
     setData((prev) => ({ ...prev, slug: e.target.value }))
   }
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setData((prev) => ({ ...prev, [field]: e.target.value }))
+  const set =
+    (field: keyof typeof emptyFields) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setData((prev) => ({ ...prev, [field]: e.target.value }))
 
   const save = async () => {
-    setSaving(true)
-    setSaveError("")
-    const body = {
-      ...data,
-      content,
-      image: image[0] ?? null,
-      tags: data.tags.split(",").map((t) => t.trim()).filter(Boolean),
-    }
-    const res = await fetch(isNew ? "/api/articles" : `/api/articles/${id}`, {
-      method: isNew ? "POST" : "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
-      setSaveError(json.error ?? "Ошибка сохранения")
-      setSaving(false)
-      return
-    }
-    router.push("/admin/articles")
+    const ok = await run(() =>
+      apiRequest(isNew ? "/api/articles" : `/api/articles/${id}`, {
+        method: isNew ? "POST" : "PATCH",
+        body: { ...data, content, image: image[0] ?? null, tags: parseList(data.tags) },
+      }),
+    )
+    if (ok) router.push("/admin/articles")
   }
+
+  if (loadError) return <p className="text-sm text-destructive">{loadError}</p>
 
   return (
     <div className="max-w-3xl flex flex-col gap-5">
@@ -101,12 +116,7 @@ export default function AdminArticleEditPage() {
         placeholder="Начните писать статью..."
       />
 
-      <ImageUpload
-        label="Обложка статьи"
-        value={image}
-        onChange={setImage}
-        maxFiles={1}
-      />
+      <ImageUpload label="Обложка статьи" value={image} onChange={setImage} maxFiles={1} />
 
       <Input
         label="Подпись под фото"
@@ -134,14 +144,26 @@ export default function AdminArticleEditPage() {
         Опубликовать
       </label>
 
-      {saveError && <p className="text-sm text-destructive">{saveError}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="flex items-center justify-between gap-3 pt-2">
         <div className="flex gap-3">
-          <Button loading={saving} onClick={save}>Сохранить</Button>
-          <Button variant="outline" onClick={() => router.back()}>Отмена</Button>
+          <Button loading={pending} onClick={save}>
+            Сохранить
+          </Button>
+          <Button variant="outline" onClick={() => router.back()}>
+            Отмена
+          </Button>
         </div>
-        {!isNew && <ArticleDeleteButton articleId={id} afterDelete="list" />}
+        {!isNew && (
+          <DeleteButton
+            endpoint={`/api/articles/${id}`}
+            redirectTo="/admin/articles"
+            label="Удалить статью"
+            title="Удалить статью?"
+            description="Это действие нельзя отменить. Статья будет удалена навсегда."
+          />
+        )}
       </div>
     </div>
   )

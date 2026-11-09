@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { Button } from "@/components/ui/Button"
 import { SearchModal } from "@/components/shared/SearchModal"
 import { mainNav } from "@/constants/nav"
+import { useCloseOnNavigate } from "@/hooks/useCloseOnNavigate"
 import { cn } from "@/lib/utils"
 
 const PHONE_DISPLAY = "+7 927 522-16-12"
@@ -17,16 +18,14 @@ const PHONE_HREF = "tel:+79275221612"
 export function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const { open: mobileOpen, toggle: toggleMobile } = useCloseOnNavigate()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", onScroll)
+    window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
-
-  useEffect(() => setMobileOpen(false), [pathname])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -122,7 +121,7 @@ export function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               variant="ghost"
               size="icon"
               className="md:hidden"
-              onClick={() => setMobileOpen((v) => !v)}
+              onClick={toggleMobile}
               aria-label="Меню"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

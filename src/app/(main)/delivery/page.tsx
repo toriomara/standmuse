@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { SectionTitle } from "@/components/shared/SectionTitle"
-import { Package, Clock, MapPin, Phone } from "lucide-react"
+import { Package, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Доставка и оплата",

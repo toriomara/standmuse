@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { handleRoute } from "@/lib/api"
+import { requireAdmin } from "@/lib/requireAdmin"
+import { productSchema } from "@/lib/validations"
 
 export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const categorySlug = searchParams.get("category")
+  return handleRoute("products GET", async () => {
+    const categorySlug = new URL(req.url).searchParams.get("category")
 
     const products = await prisma.product.findMany({
       where: {
@@ -15,23 +16,17 @@ export async function GET(req: Request) {
       include: { category: { select: { name: true, slug: true } } },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     })
-
     return NextResponse.json(products)
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
 export async function POST(req: Request) {
-  try {
-    const session = await auth()
-    const user = session?.user as { role?: string } | undefined
-    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  return handleRoute("products POST", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
-    const body = await req.json()
-    const product = await prisma.product.create({ data: body })
+    const data = productSchema.parse(await req.json())
+    const product = await prisma.product.create({ data })
     return NextResponse.json(product, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }

@@ -1,28 +1,39 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { handleRoute } from "@/lib/api"
+import { requireAdmin } from "@/lib/requireAdmin"
+import { settingsSchema } from "@/lib/validations"
+
+export const dynamic = "force-dynamic"
 
 export async function GET() {
-  const settings = await prisma.siteSettings.findMany()
-  const result: Record<string, unknown> = {}
-  settings.forEach((s) => { result[s.key] = s.value })
-  return NextResponse.json(result)
+  return handleRoute("admin/settings GET", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
+
+    const settings = await prisma.siteSettings.findMany()
+    return NextResponse.json(Object.fromEntries(settings.map((s) => [s.key, s.value])))
+  })
 }
 
 export async function POST(req: Request) {
-  const session = await auth()
-  const user = session?.user as { role?: string } | undefined
-  if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  return handleRoute("admin/settings POST", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
-  const body = await req.json()
-  const updates = await Promise.all(
-    Object.entries(body).map(([key, value]) =>
-      prisma.siteSettings.upsert({
-        where: { key },
-        update: { value: value as never, updatedAt: new Date() },
-        create: { key, value: value as never, updatedAt: new Date() },
-      })
+    const body = settingsSchema.parse(await req.json())
+    const updatedAt = new Date()
+    const updates = await Promise.all(
+      Object.entries(body).map(([key, value]) => {
+        const json = value as Prisma.InputJsonValue
+        return prisma.siteSettings.upsert({
+          where: { key },
+          update: { value: json, updatedAt },
+          create: { key, value: json, updatedAt },
+        })
+      }),
     )
-  )
-  return NextResponse.json(updates)
+    return NextResponse.json(updates)
+  })
 }

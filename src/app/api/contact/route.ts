@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { handleRoute } from "@/lib/api"
 import { contactSchema } from "@/lib/validations"
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const data = contactSchema.parse(body)
+  return handleRoute("contact POST", async () => {
+    const data = contactSchema.parse(await req.json())
     await prisma.request.create({
       data: {
         productType: "contact",
@@ -15,8 +15,6 @@ export async function POST(req: Request) {
         message: data.message,
       },
     })
-    return NextResponse.json({ ok: true })
-  } catch {
-    return NextResponse.json({ error: "Ошибка" }, { status: 400 })
-  }
+    return NextResponse.json({ ok: true }, { status: 201 })
+  })
 }

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/Button"
 import { Badge } from "@/components/ui/Badge"
 import { Plus, Pencil } from "lucide-react"
-import { ArticleDeleteButton } from "./DeleteButton"
+import { DeleteButton } from "@/components/admin/DeleteButton"
 export const metadata: Metadata = { title: "Admin — Статьи" }
 
 export default async function AdminArticlesPage() {
@@ -67,7 +67,12 @@ export default async function AdminArticlesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-3">
-                      <ArticleDeleteButton articleId={a.id} afterDelete="stay" />
+                      <DeleteButton
+                        endpoint={`/api/articles/${a.id}`}
+                        label="Удалить статью"
+                        title="Удалить статью?"
+                        description="Это действие нельзя отменить. Статья будет удалена навсегда."
+                      />
                       <Link href={`/admin/articles/${a.id}`}>
                         <Button variant="ghost" size="icon">
                           <Pencil className="h-4 w-4" />
