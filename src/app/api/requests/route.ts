@@ -1,34 +1,30 @@
 import { NextResponse } from "next/server"
-import { ZodError } from "zod"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { handleRoute } from "@/lib/api"
+import { requireAdmin } from "@/lib/requireAdmin"
 import { requestSchema } from "@/lib/validations"
-import { getSessionUserId, isAdmin } from "@/lib/session"
+import { getSessionUserId } from "@/lib/session"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  try {
-    const session = await auth()
-    if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  return handleRoute("requests GET", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
     const requests = await prisma.request.findMany({
       include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
     })
     return NextResponse.json(requests)
-  } catch (error) {
-    console.error("[API requests GET]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const data = requestSchema.parse(body)
-    const session = await auth()
-    const userId = getSessionUserId(session)
+  return handleRoute("requests POST", async () => {
+    const data = requestSchema.parse(await req.json())
+    const userId = getSessionUserId(await auth())
 
     const dimensions = {
       ...(data.dimensions && { main: data.dimensions }),
@@ -55,11 +51,5 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(request, { status: 201 })
-  } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json({ error: "Validation failed", details: error.flatten() }, { status: 400 })
-    }
-    console.error("[API requests POST]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { handleRoute } from "@/lib/api"
+import { requireAdmin } from "@/lib/requireAdmin"
+import { articleSchema } from "@/lib/validations"
+import { resolvePublishedAt } from "@/lib/publishing"
 import { slugify } from "@/lib/utils"
 
 async function uniqueSlug(base: string): Promise<string> {
@@ -13,35 +16,25 @@ async function uniqueSlug(base: string): Promise<string> {
 }
 
 export async function GET() {
-  try {
+  return handleRoute("articles GET", async () => {
     const articles = await prisma.article.findMany({
       where: { isPublished: true },
       orderBy: { publishedAt: "desc" },
     })
     return NextResponse.json(articles)
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
 export async function POST(req: Request) {
-  try {
-    const session = await auth()
-    const user = session?.user as { role?: string } | undefined
-    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  return handleRoute("articles POST", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
-    const body = await req.json()
-    const base = slugify(body.slug || body.title || "article")
-    const slug = await uniqueSlug(base)
+    const data = articleSchema.parse(await req.json())
+    const slug = await uniqueSlug(slugify(data.slug || data.title) || "article")
     const article = await prisma.article.create({
-      data: {
-        ...body,
-        slug,
-        publishedAt: body.isPublished ? new Date() : null,
-      },
+      data: { ...data, slug, publishedAt: resolvePublishedAt(data.isPublished) },
     })
     return NextResponse.json(article, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }

@@ -2,17 +2,21 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/requireAdmin"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { handleRoute, jsonError, notFound } from "@/lib/api"
 import { getSessionUserId } from "@/lib/session"
 import { createConversationMessage } from "@/lib/messages"
+import { messageSchema, objectId } from "@/lib/validations"
 
 export const dynamic = "force-dynamic"
 
-export async function GET(_: Request, { params }: { params: Promise<{ userId: string }> }) {
-  try {
+type UserContext = { params: Promise<{ userId: string }> }
+
+export async function GET(_: Request, { params }: UserContext) {
+  return handleRoute("admin/conversations/:userId GET", async () => {
     const forbidden = await requireAdmin()
     if (forbidden) return forbidden
 
-    const { userId } = await params
+    const userId = objectId.parse((await params).userId)
     const conversation = await prisma.conversation.findUnique({
       where: { userId },
       include: {
@@ -21,29 +25,21 @@ export async function GET(_: Request, { params }: { params: Promise<{ userId: st
       },
     })
 
-    if (!conversation) return NextResponse.json({ error: "Not found" }, { status: 404 })
+    if (!conversation) return notFound()
     return NextResponse.json(conversation)
-  } catch (error) {
-    console.error("[API admin/conversations/:userId GET]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ userId: string }> }) {
-  try {
+export async function POST(req: Request, { params }: UserContext) {
+  return handleRoute("admin/conversations/:userId POST", async () => {
     const forbidden = await requireAdmin()
     if (forbidden) return forbidden
 
-    const session = await auth()
-    const senderId = getSessionUserId(session)
-    if (!senderId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const senderId = getSessionUserId(await auth())
+    if (!senderId) return jsonError("Unauthorized", 401)
 
-    const { userId } = await params
-    const { text, imageUrl } = await req.json()
-
-    if (!text?.trim() && !imageUrl) {
-      return NextResponse.json({ error: "Bad request" }, { status: 400 })
-    }
+    const userId = objectId.parse((await params).userId)
+    const { text, imageUrl } = messageSchema.parse(await req.json())
 
     const conversation = await prisma.conversation.upsert({
       where: { userId },
@@ -60,8 +56,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ userId:
     })
 
     return NextResponse.json(message, { status: 201 })
-  } catch (error) {
-    console.error("[API admin/conversations/:userId POST]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }

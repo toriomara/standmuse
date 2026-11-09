@@ -1,30 +1,27 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { handleRoute } from "@/lib/api"
+import { requireAdmin } from "@/lib/requireAdmin"
+import { categorySchema } from "@/lib/validations"
 
 export async function GET() {
-  try {
+  return handleRoute("categories GET", async () => {
     const categories = await prisma.category.findMany({
       where: { isActive: true },
       include: { _count: { select: { products: true } } },
       orderBy: { sortOrder: "asc" },
     })
     return NextResponse.json(categories)
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
 export async function POST(req: Request) {
-  try {
-    const session = await auth()
-    const user = session?.user as { role?: string } | undefined
-    if (user?.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  return handleRoute("categories POST", async () => {
+    const forbidden = await requireAdmin()
+    if (forbidden) return forbidden
 
-    const body = await req.json()
-    const category = await prisma.category.create({ data: body })
+    const data = categorySchema.parse(await req.json())
+    const category = await prisma.category.create({ data })
     return NextResponse.json(category, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }

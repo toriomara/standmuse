@@ -1,11 +1,8 @@
-import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { jsonError } from "@/lib/api"
+import { isAdmin } from "@/lib/session"
 
+/** Возвращает ответ 403, если текущий пользователь — не администратор; иначе `null`. */
 export async function requireAdmin() {
-  const session = await auth()
-  const user = session?.user as { role?: string } | undefined
-  if (user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
-  return null
+  return isAdmin(await auth()) ? null : jsonError("Forbidden", 403)
 }

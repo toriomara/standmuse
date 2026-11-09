@@ -1,47 +1,44 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { handleRoute, notFound, type IdContext } from "@/lib/api"
 import { requireAdmin } from "@/lib/requireAdmin"
+import { orderSchema } from "@/lib/validations"
 
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
+// Через API правятся только эти поля; контакты и состав заказа — неизменяемы
+const orderUpdateSchema = orderSchema.pick({ status: true, notes: true, params: true, totalPrice: true }).partial()
+
+export async function GET(_: Request, { params }: IdContext) {
+  return handleRoute("orders/:id GET", async () => {
     const forbidden = await requireAdmin()
     if (forbidden) return forbidden
 
     const { id } = await params
     const order = await prisma.order.findUnique({ where: { id } })
-    if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 })
+    if (!order) return notFound()
     return NextResponse.json(order)
-  } catch (error) {
-    console.error("[API orders/:id GET]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
+export async function PATCH(req: Request, { params }: IdContext) {
+  return handleRoute("orders/:id PATCH", async () => {
     const forbidden = await requireAdmin()
     if (forbidden) return forbidden
 
     const { id } = await params
-    const body = await req.json()
-    const order = await prisma.order.update({ where: { id }, data: body })
+    // null в params означает «очистить», undefined — «не трогать»
+    const data = orderUpdateSchema.parse(await req.json())
+    const order = await prisma.order.update({ where: { id }, data })
     return NextResponse.json(order)
-  } catch (error) {
-    console.error("[API orders/:id PATCH]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
+export async function DELETE(_: Request, { params }: IdContext) {
+  return handleRoute("orders/:id DELETE", async () => {
     const forbidden = await requireAdmin()
     if (forbidden) return forbidden
 
     const { id } = await params
     await prisma.order.delete({ where: { id } })
     return NextResponse.json({ ok: true })
-  } catch (error) {
-    console.error("[API orders/:id DELETE]", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
+  })
 }
