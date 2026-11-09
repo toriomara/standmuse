@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button"
 import { Input, Textarea } from "@/components/ui/Input"
 import { RichEditor } from "@/components/ui/RichEditor"
 import { ImageUpload } from "@/components/ui/ImageUpload"
+import { apiRequest, errorMessage } from "@/lib/api-client"
+import { parseList } from "@/lib/utils"
 
 const schema = z.object({
   name: z.string().min(1, "Введите название"),
@@ -66,33 +68,24 @@ export function AdminProductForm({ product, categories }: Props) {
   })
 
   const onSubmit = async (data: FormData) => {
-    setSaveError("")
-    const method = product ? "PATCH" : "POST"
-    const url = product ? `/api/products/${product.id}` : "/api/products"
-
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await apiRequest(product ? `/api/products/${product.id}` : "/api/products", {
+        method: product ? "PATCH" : "POST",
+        body: {
           ...data,
           description,
           images,
           priceFrom: data.priceFrom ? Number(data.priceFrom) : null,
-          features: data.features ? data.features.split("\n").map(s => s.trim()).filter(Boolean) : [],
-          materials: data.materials ? data.materials.split("\n").map(s => s.trim()).filter(Boolean) : [],
-        }),
+          features: parseList(data.features ?? "", "\n"),
+          materials: parseList(data.materials ?? "", "\n"),
+        },
       })
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}))
-        setSaveError(json.error ?? "Ошибка сохранения")
-        return
-      }
-      router.push("/admin/products")
-      router.refresh()
-    } catch {
-      setSaveError("Нет соединения с сервером")
+    } catch (e) {
+      setSaveError(errorMessage(e, "Ошибка сохранения"))
+      return
     }
+    router.push("/admin/products")
+    router.refresh()
   }
 
   return (

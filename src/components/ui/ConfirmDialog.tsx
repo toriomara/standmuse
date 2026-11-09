@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
   onOpenChange: (open: boolean) => void
   title: string
   description?: string
+  /** Текст ошибки выполнения действия (показывается под описанием). */
+  error?: string
   confirmLabel?: string
   cancelLabel?: string
   loading?: boolean
@@ -21,6 +23,7 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
+  error,
   confirmLabel = "Удалить",
   cancelLabel = "Отмена",
   loading = false,
@@ -56,6 +59,12 @@ export function ConfirmDialog({
               )}
             </div>
           </div>
+
+          {error && (
+            <p role="alert" className="mb-4 text-sm text-destructive">
+              {error}
+            </p>
+          )}
 
           <div className="flex gap-2">
             <Button

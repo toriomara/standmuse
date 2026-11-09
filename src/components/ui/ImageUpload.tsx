@@ -17,7 +17,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { useUploadThing } from "@/lib/uploadthing-client"
+import { getUploadedUrl, useUploadThing } from "@/lib/uploadthing-client"
 import { Button } from "./Button"
 import { cn } from "@/lib/utils"
 import { isAllowedImageHost } from "@/lib/image-hosts"
@@ -143,10 +143,7 @@ export function ImageUpload({ value, onChange, maxFiles = 10, label }: Props) {
     setUploadError("")
     const result = await startUpload(files.slice(0, maxFiles - value.length))
     if (result) {
-      const urls = result.map((r) => {
-        const f = r as unknown as { ufsUrl?: string; url: string }
-        return f.ufsUrl ?? f.url
-      })
+      const urls = result.map((file) => getUploadedUrl(file))
       onChange([...value, ...urls].slice(0, maxFiles))
     }
   }

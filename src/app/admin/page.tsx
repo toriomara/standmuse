@@ -1,8 +1,6 @@
 ﻿export const dynamic = "force-dynamic"
 import { Metadata } from "next"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { Badge } from "@/components/ui/Badge"
 import { Package, MessageSquare, ShoppingCart, FileText } from "lucide-react"
 export const metadata: Metadata = { title: "Admin — Dashboard" }
 

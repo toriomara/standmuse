@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react"
 import { ImagePlaceholder } from "@/components/ui/ImagePlaceholder"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface ProductGalleryProps {
@@ -24,10 +24,13 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [direction, setDirection] = useState<1 | -1>(1)
 
-  const navigate = (dir: 1 | -1) => {
-    setDirection(dir)
-    setActiveIndex((i) => (i + dir + images.length) % images.length)
-  }
+  const navigate = useCallback(
+    (dir: 1 | -1) => {
+      setDirection(dir)
+      setActiveIndex((i) => (i + dir + images.length) % images.length)
+    },
+    [images.length],
+  )
 
   const openAt = (index: number) => {
     setDirection(1)
@@ -43,7 +46,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
     }
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [modalOpen, activeIndex, images.length])
+  }, [modalOpen, navigate])
 
   return (
     <>

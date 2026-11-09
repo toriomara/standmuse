@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/Badge"
 import { ORDER_STATUS_MAP } from "@/constants/statusMaps"
-import { OrderStatusUpdater } from "./OrderStatusUpdater"
+import { StatusUpdater } from "@/components/admin/StatusUpdater"
 import { OrderNotesEditor } from "./OrderNotesEditor"
 import { OrderParamsEditor } from "./OrderParamsEditor"
 import { formatPrice } from "@/lib/utils"
@@ -67,7 +67,11 @@ export default async function AdminOrderDetailPage({
       {/* Status */}
       <div className="rounded-xl border border-border bg-card p-5">
         <p className="text-sm font-semibold mb-3">Изменить статус</p>
-        <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
+        <StatusUpdater
+          endpoint={`/api/orders/${order.id}`}
+          currentStatus={order.status}
+          options={ORDER_STATUS_MAP}
+        />
       </div>
 
       {/* Contact */}

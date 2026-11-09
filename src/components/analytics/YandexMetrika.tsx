@@ -37,6 +37,7 @@ ym(${YM_ID},'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",a
       />
       <noscript>
         <div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- пиксель в <noscript>, next/image здесь не работает */}
           <img
             src={`https://mc.yandex.ru/watch/${YM_ID}`}
             style={{ position: "absolute", left: "-9999px" }}

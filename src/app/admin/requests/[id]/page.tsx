@@ -5,8 +5,8 @@ import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/Badge"
 import { Field } from "@/components/ui/Field"
-import { StatusUpdater } from "./StatusUpdater"
-import { DeleteButton } from "./DeleteButton"
+import { StatusUpdater } from "@/components/admin/StatusUpdater"
+import { DeleteButton } from "@/components/admin/DeleteButton"
 import { REQUEST_STATUS_MAP } from "@/constants/statusMaps"
 import {
   PRODUCT_TYPE_LABELS,
@@ -72,13 +72,24 @@ export default async function AdminRequestDetailPage({
           <Badge variant={s.variant} className="text-sm px-3 py-1">
             {s.label}
           </Badge>
-          <DeleteButton requestId={req.id} />
+          <DeleteButton
+            endpoint={`/api/requests/${req.id}`}
+            redirectTo="/admin/requests"
+            variant="text"
+            label="Удалить заявку"
+            title="Удалить заявку?"
+            description="Это действие нельзя отменить. Заявка будет удалена навсегда."
+          />
         </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">
         <p className="text-sm font-semibold mb-3">Изменить статус</p>
-        <StatusUpdater requestId={req.id} currentStatus={req.status} />
+        <StatusUpdater
+          endpoint={`/api/requests/${req.id}`}
+          currentStatus={req.status}
+          options={REQUEST_STATUS_MAP}
+        />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">

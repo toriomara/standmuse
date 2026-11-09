@@ -6,11 +6,13 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/Button"
 import { Input, Textarea } from "@/components/ui/Input"
+import { apiRequest, errorMessage } from "@/lib/api-client"
 import { contactSchema, type ContactInput } from "@/lib/validations"
 import { CheckCircle2 } from "lucide-react"
 
 export function ContactCtaSection() {
   const [sent, setSent] = useState(false)
+  const [submitError, setSubmitError] = useState("")
 
   const {
     register,
@@ -22,11 +24,13 @@ export function ContactCtaSection() {
   })
 
   const onSubmit = async (data: ContactInput) => {
-    await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
+    setSubmitError("")
+    try {
+      await apiRequest("/api/contact", { method: "POST", body: data })
+    } catch (e) {
+      setSubmitError(errorMessage(e, "Не удалось отправить сообщение. Попробуйте ещё раз."))
+      return
+    }
     setSent(true)
     reset()
   }
@@ -106,6 +110,11 @@ export function ContactCtaSection() {
                   error={errors.message?.message}
                   {...register("message")}
                 />
+                {submitError && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {submitError}
+                  </p>
+                )}
                 <Button type="submit" size="lg" loading={isSubmitting}>
                   Отправить сообщение
                 </Button>
